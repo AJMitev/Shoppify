@@ -1,4 +1,4 @@
-# shoppify
+# Shoppify
 
 A new Flutter project.
 
