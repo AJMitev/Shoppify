@@ -29,6 +29,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   flutter_dotenv: ^5.0.2
   supabase: ^0.2.1
+  uuid: ^3.0.4
 
 dev_dependencies:
   flutter_test:

@@ -51,7 +51,7 @@ class _ItemsListPageState extends State<ItemsListPage> {
     return Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (_) => _removeItem,
+        onDismissed: (_) => _removeItem(item.id),
         child: _buildItem(item),
         background: _buildListItemBackground());
   }
@@ -89,31 +89,27 @@ class _ItemsListPageState extends State<ItemsListPage> {
   _loadItems() async {
     final fetchedItems = await Item.fetchAll();
     setState(() {
+      this._items.clear();
       this._items.addAll(fetchedItems);
     });
   }
 
-  _changeItemBoughtStatus(Item item) {
-    setState(() {
-      item.isBought = !item.isBought;
-      if (item.isBought) {
-        this._items.remove(item);
-        this._items.add(item);
-      }
-    });
+  _changeItemBoughtStatus(Item item) async {
+    item.isBought = !item.isBought;
+    await Item.update(item);
+    this._loadItems();
   }
 
-  _removeItem(int index) {
-    setState(() {
-      this._items.removeAt(index);
-    });
+  _removeItem(String itemId) async {
+    await Item.remove(itemId);
+    this._loadItems();
   }
 
   _addItem() {
     showDialog(
         context: context,
         builder: (context) => new AlertDialog(
-              title: const Text('Добави нов продукт към списъка'),
+              title: const Text('Добавяне на продукт'),
               content: new Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,7 +119,7 @@ class _ItemsListPageState extends State<ItemsListPage> {
                     child: TextField(
                       controller: this._itemAddController,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                        border: UnderlineInputBorder(),
                         labelText: 'Продукт',
                       ),
                     ),
@@ -137,7 +133,7 @@ class _ItemsListPageState extends State<ItemsListPage> {
             ));
   }
 
-  _addNewItemToBuy() {
+  _addNewItemToBuy() async {
     if (this._itemAddController.text.trim().isEmpty) {
       return;
     }
@@ -149,9 +145,11 @@ class _ItemsListPageState extends State<ItemsListPage> {
       return;
     }
 
+    Item.addNew(newItem);
+
     setState(() {
-      this._items.add(newItem);
       this._itemAddController.text = "";
+      this._loadItems();
     });
 
     Navigator.of(context).pop();
