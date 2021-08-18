@@ -14,7 +14,7 @@ class Item {
     var response = await Database.client
         .from('items')
         .select()
-        .order('isBought', ascending: false)
+        .order('isBought', ascending: true)
         .execute();
 
     if (response.error != null) {

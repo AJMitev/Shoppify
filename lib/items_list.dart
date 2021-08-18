@@ -40,11 +40,14 @@ class _ItemsListPageState extends State<ItemsListPage> {
       return Center(child: const Text('Няма добавени продукти за покупка.'));
     }
 
-    return ListView.builder(
-        itemCount: this._items.length,
-        itemBuilder: (BuildContext context, int index) {
-          return _buildListItem(this._items[index]);
-        });
+    return RefreshIndicator(
+      child: ListView.builder(
+          itemCount: this._items.length,
+          itemBuilder: (BuildContext context, int index) {
+            return _buildListItem(this._items[index]);
+          }),
+      onRefresh: () => this._loadItems(),
+    );
   }
 
   Widget _buildListItem(Item item) {
@@ -138,14 +141,18 @@ class _ItemsListPageState extends State<ItemsListPage> {
       return;
     }
 
-    final newItem = Item(this._itemAddController.text);
-    if (this._items.where((element) => element.name == newItem.name).length >
+    final itemName = this._itemAddController.text;
+    if (this
+            ._items
+            .where((element) =>
+                element.name.toLowerCase() == itemName.toLowerCase())
+            .length >
         0) {
       showDialog(context: context, builder: _buildAlertDialog);
       return;
     }
 
-    Item.addNew(newItem);
+    await Item.addNew(Item(itemName));
 
     setState(() {
       this._itemAddController.text = "";
