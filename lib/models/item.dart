@@ -4,8 +4,8 @@ import 'package:supabase/supabase.dart';
 import '../database.dart';
 
 class Item {
-  final String id;
-  final String name;
+  String id;
+  String name;
   bool isBought;
 
   Item(this.name, {this.isBought = false, this.id = ''});
