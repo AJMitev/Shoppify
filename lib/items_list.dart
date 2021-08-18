@@ -79,8 +79,9 @@ class _ItemsListPageState extends State<ItemsListPage> {
   Widget _buildTile(Item item) {
     return ListTile(
         title: Text("${item.name}",
-            style: TextStyle(
-                decoration: item.isBought ? TextDecoration.lineThrough : null)),
+            style: item.isBought
+                ? Styles.BoughtItemTextStyle
+                : Styles.ItemTextStyle),
         tileColor: Colors.grey.shade100,
         leading: Icon(
           item.isBought ? Icons.check_box : Icons.check_box_outline_blank,
