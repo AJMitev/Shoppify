@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shoppify/items.dart';
+import 'package:shoppify/items_list.dart';
 
 void main() {
   runApp(App());
@@ -14,7 +14,7 @@ class App extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.green,
       ),
-      home: ItemsPage(title: 'Shopify Home Page'),
+      home: ItemsListPage(title: 'Shopify Home Page'),
     );
   }
 }
