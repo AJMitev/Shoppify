@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:shoppify/mock/mock_item.dart';
 import 'package:shoppify/models/item.dart';
 import 'styles.dart';
 
@@ -16,12 +15,14 @@ class _ItemsListPageState extends State<ItemsListPage> {
   final _items = <Item>[];
   final _itemAddController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
+  }
+
   // @override
   Widget build(BuildContext context) {
-    if (this._items.length == 0) {
-      this._items.addAll(MockItem.fetchAll());
-    }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
@@ -83,6 +84,13 @@ class _ItemsListPageState extends State<ItemsListPage> {
           color: item.isBought ? Colors.green.shade300 : null,
         ),
         onTap: () => _changeItemBoughtStatus(item));
+  }
+
+  _loadItems() async {
+    final fetchedItems = await Item.fetchAll();
+    setState(() {
+      this._items.addAll(fetchedItems);
+    });
   }
 
   _changeItemBoughtStatus(Item item) {
