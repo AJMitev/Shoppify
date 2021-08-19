@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shoppify/models/item.dart';
+import 'package:uuid/uuid.dart';
 import 'styles.dart';
 
 class ItemsListPage extends StatefulWidget {
@@ -44,17 +45,17 @@ class _ItemsListPageState extends State<ItemsListPage> {
       child: ListView.builder(
           itemCount: this._items.length,
           itemBuilder: (BuildContext context, int index) {
-            return _buildListItem(this._items[index]);
+            return _buildListItem(this._items[index], index);
           }),
       onRefresh: () => this._loadItems(),
     );
   }
 
-  Widget _buildListItem(Item item) {
+  Widget _buildListItem(Item item, int index) {
     return Dismissible(
         key: UniqueKey(),
         direction: DismissDirection.endToStart,
-        onDismissed: (_) => _removeItem(item.id),
+        onDismissed: (_) => _removeItem(item.id, index),
         child: _buildItem(item),
         background: _buildListItemBackground());
   }
@@ -92,6 +93,7 @@ class _ItemsListPageState extends State<ItemsListPage> {
 
   _loadItems() async {
     final fetchedItems = await Item.fetchAll();
+    fetchedItems.sort();
     setState(() {
       this._items.clear();
       this._items.addAll(fetchedItems);
@@ -100,13 +102,15 @@ class _ItemsListPageState extends State<ItemsListPage> {
 
   _changeItemBoughtStatus(Item item) async {
     item.isBought = !item.isBought;
+    this._changeItemPositionToEdge(item);
     await Item.update(item);
-    this._loadItems();
+    // this._loadItems();
   }
 
-  _removeItem(String itemId) async {
+  _removeItem(String itemId, int index) async {
+    this._items.removeAt(index);
     await Item.remove(itemId);
-    this._loadItems();
+    // this._loadItems();
   }
 
   _addItem() {
@@ -153,13 +157,12 @@ class _ItemsListPageState extends State<ItemsListPage> {
       return;
     }
 
-    await Item.addNew(Item(itemName));
+    this._itemAddController.text = "";
+    final createdItem = Item(itemName);
 
-    setState(() {
-      this._itemAddController.text = "";
-      this._loadItems();
-    });
+    this._changeItemPositionToEdge(createdItem);
 
+    await Item.addNew(createdItem);
     Navigator.of(context).pop();
   }
 
@@ -188,5 +191,14 @@ class _ItemsListPageState extends State<ItemsListPage> {
   _closeDialog() {
     this._itemAddController.text = "";
     Navigator.of(context).pop();
+  }
+
+  _changeItemPositionToEdge(Item item) {
+    setState(() {
+      int lastIndex = this._items.length - 1;
+      this._items.remove(item);
+      this._items.insert(lastIndex, item);
+      this._items.sort();
+    });
   }
 }

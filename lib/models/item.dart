@@ -1,14 +1,16 @@
 import 'dart:developer';
 
 import 'package:supabase/supabase.dart';
+import 'package:uuid/uuid.dart';
 import '../database.dart';
 
-class Item {
-  String id;
+class Item implements Comparable<Item> {
+  String id = Uuid().v4();
   String name;
   bool isBought;
+  DateTime createdOn = DateTime.now().toUtc();
 
-  Item(this.name, {this.isBought = false, this.id = ''});
+  Item(this.name, {this.isBought = false});
 
   static Future<List<Item>> fetchAll() async {
     var response = await Database.client
@@ -23,8 +25,10 @@ class Item {
 
     List<Item> items = [];
     response.data.forEach((x) {
-      items.add(
-          Item(x['name'].toString(), isBought: x['isBought'], id: x['id']));
+      var item = Item(x['name'].toString(), isBought: x['isBought']);
+      item.id = x['id'];
+      item.createdOn = DateTime.parse(x['createdOn']);
+      items.add(item);
     });
 
     return items;
@@ -48,5 +52,17 @@ class Item {
   Map<String, dynamic> toJson() => {
         'name': this.name,
         'isBought': this.isBought,
+        'createdOn': this.createdOn.toString(),
       };
+
+  @override
+  int compareTo(Item other) {
+    return this.isBought == other.isBought
+        ? this.createdOn.isBefore(other.createdOn)
+            ? -1
+            : 1
+        : this.isBought
+            ? 1
+            : -1;
+  }
 }
