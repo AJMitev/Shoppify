@@ -1,8 +1,6 @@
-import 'dart:developer';
-
 import 'package:supabase/supabase.dart';
 import 'package:uuid/uuid.dart';
-import '../database.dart';
+import 'database.dart';
 
 class Item implements Comparable<Item> {
   String id = Uuid().v4();

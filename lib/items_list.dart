@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shoppify/models/item.dart';
-import 'package:uuid/uuid.dart';
-import 'styles.dart';
+import 'constants/styles.dart';
 
 class ItemsListPage extends StatefulWidget {
   ItemsListPage({Key? key, required this.title}) : super(key: key);
@@ -31,14 +30,23 @@ class _ItemsListPageState extends State<ItemsListPage> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: _addItem,
-        child: Icon(Icons.add),
+        backgroundColor: Styles.primaryColor,
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
     if (this._items.length == 0) {
-      return Center(child: const Text('Няма добавени продукти за покупка.'));
+      return Center(
+          child: const Text(
+        'Няма добавени продукти за покупка.',
+        textAlign: TextAlign.center,
+        style: Styles.NoItemsTitleTextStype,
+      ));
     }
 
     return RefreshIndicator(
@@ -86,7 +94,7 @@ class _ItemsListPageState extends State<ItemsListPage> {
         tileColor: Colors.grey.shade100,
         leading: Icon(
           item.isBought ? Icons.check_box : Icons.check_box_outline_blank,
-          color: item.isBought ? Colors.green.shade300 : null,
+          color: item.isBought ? Styles.primaryColor : null,
         ),
         onTap: () => _changeItemBoughtStatus(item));
   }
@@ -108,9 +116,11 @@ class _ItemsListPageState extends State<ItemsListPage> {
   }
 
   _removeItem(String itemId, int index) async {
-    this._items.removeAt(index);
+    setState(() {
+      this._items.removeAt(index);
+    });
+
     await Item.remove(itemId);
-    // this._loadItems();
   }
 
   _addItem() {
@@ -118,27 +128,45 @@ class _ItemsListPageState extends State<ItemsListPage> {
         context: context,
         builder: (context) => new AlertDialog(
               title: const Text('Добавяне на продукт'),
-              content: new Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: EdgeInsets.all(20),
-                    child: TextField(
-                      controller: this._itemAddController,
-                      decoration: InputDecoration(
-                        border: UnderlineInputBorder(),
-                        labelText: 'Продукт',
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              actions: <Widget>[
-                _buildButton('Затвори', _closeDialog, Styles.cancelButton),
-                _buildButton('Добави', _addNewItemToBuy, Styles.primaryButton)
-              ],
+              content: _buildAddItemContent(),
+              actions: _buildCreateDialogButtons(),
             ));
+  }
+
+  Widget _buildAddItemContent() {
+    return new Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: EdgeInsets.all(20),
+          child: TextField(
+              keyboardType: TextInputType.text,
+              cursorColor: Styles.primaryColor,
+              controller: this._itemAddController,
+              decoration: _buildInputDecorator()),
+        )
+      ],
+    );
+  }
+
+  InputDecoration _buildInputDecorator() {
+    return InputDecoration(
+        hintText: 'Чушки',
+        hintStyle: Styles.InputHintTextStyle,
+        labelText: 'Продукт',
+        labelStyle: Styles.InputLabelTextStyle,
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Styles.primaryColor, width: 1.0),
+        ),
+        hoverColor: Styles.primaryColor);
+  }
+
+  List<Widget> _buildCreateDialogButtons() {
+    return <Widget>[
+      _buildButton('Затвори', _closeDialog, Styles.cancelButton),
+      _buildButton('Добави', _addNewItemToBuy, Styles.primaryButton)
+    ];
   }
 
   _addNewItemToBuy() async {
@@ -146,7 +174,10 @@ class _ItemsListPageState extends State<ItemsListPage> {
       return;
     }
 
-    final itemName = this._itemAddController.text;
+    String itemName = this._itemAddController.text;
+    var firstChar = itemName[0];
+    itemName = itemName.replaceFirst(firstChar, firstChar.toUpperCase());
+
     if (this
             ._items
             .where((element) =>
@@ -160,9 +191,11 @@ class _ItemsListPageState extends State<ItemsListPage> {
     this._itemAddController.text = "";
     final createdItem = Item(itemName);
 
+    this._items.add(createdItem);
     this._changeItemPositionToEdge(createdItem);
 
     await Item.addNew(createdItem);
+
     Navigator.of(context).pop();
   }
 
@@ -195,9 +228,6 @@ class _ItemsListPageState extends State<ItemsListPage> {
 
   _changeItemPositionToEdge(Item item) {
     setState(() {
-      int lastIndex = this._items.length - 1;
-      this._items.remove(item);
-      this._items.insert(lastIndex, item);
       this._items.sort();
     });
   }
